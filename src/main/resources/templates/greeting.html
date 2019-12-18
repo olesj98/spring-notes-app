@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Getting Started: Serving Web Content</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    </head>
+    <body>
+        <div style="margin: 1rem; display: flex; flex-direction: column">
+            <h2>Your Notes</h2>
+            <div style="width: 100%; display: flex; justify-content: right">
+                <button id="open-modal" style="width: 10rem; padding: 0.5rem; border: none; background-color: #039be5; color: aliceblue;">
+                    +Add new note
+                </button>
+            </div>
+            <table class="highlight">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Title</th>
+                        <th>Details</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="note: ${notes}">
+                        <td th:text="${note.id}" />
+                        <td th:text="${note.title}" />
+                        <td th:text="${note.content}" />
+                        <td><span><a th:href="'/edit/' + ${note.id}">Edit</a></span></td>
+                        <td><span th:onclick="'deleteNote('+${note.id}+');'" style="color: #039be5; cursor: pointer">Delete</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+<!--        Modal       -->
+        <div id="modal" class="modal modal-fixed-footer">
+            <div style="display: flex; flex-direction: column; padding: 2rem">
+                <h4>Modal Header</h4>
+                <form id="add-form" style="margin: 1rem 0">
+                    <label for="title">Note title:</label>
+                    <input type="text" id="title">
+                    <label for="content">Note content:</label>
+                    <input type="text" id="content">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="add-note" style="width: 10rem; padding: 0.5rem; border: none; background-color: #039be5; color: aliceblue;">
+                    Submit
+                </button>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(() => {
+                //Inin modal
+                const modalElem = $("#modal")[0];
+                const modal = M.Modal.init(modalElem);
+
+                //Open modal
+                $("#open-modal").click((event)=>{
+                    modal.open()
+                });
+
+                // Add note
+                $("#add-note").click((event)=>{
+
+                    const title = $("#title")[0].value;
+                    const content = $("#content")[0].value;
+                    const data = {"title": title, "content": content};
+
+                    makeRequest(data, "POST");
+                    modal.close();
+                });
+
+            });
+
+            function makeRequest(data, method, noteId = null) {
+                const req_data = JSON.stringify(data);
+                // {"title": newTitle, "content": newContent}
+                const baseUrl = `http://localhost:8080/api/notes`;
+
+                const url = noteId === null ? baseUrl : baseUrl + "/" + noteId;
+
+                const request = new Request(url, {method: method, headers: {'Content-Type': 'application/json'}, body: req_data});
+
+                fetch(request).then(
+                    res => {
+                        M.toast({html: 'Succeed.'});
+                        setTimeout(()=>location.reload(), 500);
+                    }
+                ).catch(
+                    err => M.toast({html: 'Error occured.'})
+                );
+            }
+
+            // Delete note
+            function deleteNote(noteId) {
+                console.log(noteId);
+                makeRequest(null, "DELETE", noteId);
+            }
+        </script>
+    </body>
+</html>

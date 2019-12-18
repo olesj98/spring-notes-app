@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+<body style="height: 100vh; width: 100vw">
+    <div style="margin: 1rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
+        <div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start">
+                <h4 style="width: 100%; text-align: center">
+                    Note: #<span th:text="${note.id}" id="note-id"></span>
+                </h4>
+                <div>
+                    <span><b>Note title:</b></span>
+                    <span th:text="${note.title}"></span>
+                </div>
+                <div>
+                    <span><b>Note content:</b></span>
+                    <span th:text="${note.content}"></span>
+                </div>
+            </div>
+            <form id="edit-form" style="margin: 1rem 0">
+                <label for="title">Change note title:</label>
+                <input type="text" id="title">
+                <label for="content">Change note content:</label>
+                <input type="text" id="content">
+                <button type="submit" id="edit">Submit</button>
+            </form>
+            <p style="width: 100%; text-align: right">
+                <a th:href="'/greeting'"><- Back to your notes</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(() => {
+            $("#edit").click((event)=>{
+                event.preventDefault();
+
+                const newTitle = $("#title")[0].value;
+                const newContent = $("#content")[0].value;
+
+                if(!newTitle || !newContent) {
+                    M.toast({html: 'One of inputs is empty. Please fill both.'});
+                    return;
+                }
+
+                const noteId = $("#note-id").text();
+                const data = JSON.stringify({"title": newTitle, "content": newContent});
+
+                const request = new Request(`http://localhost:8080/api/notes/${noteId}`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: data});
+
+                fetch(request).then(
+                    res => {
+                        M.toast({html: 'Changed.'});
+                        setTimeout(()=>location.reload(), 500);
+                    }
+                ).catch(
+                    err => M.toast({html: 'Error occured.'})
+                );
+            });
+        });
+    </script>
+</body>
+</html>
